@@ -1,12 +1,14 @@
 import { Injectable } from "@angular/core";
 import { AngularFirestore } from "@angular/fire/compat/firestore";
-import { Subject } from "rxjs";
+import { Subject, Subscription } from "rxjs";
 import { Exercise } from "./exercise.model";
 @Injectable() //for inject provider auto
 export class TrainingService {
     exerciseChange = new Subject<Exercise>();
     exercisesChanged = new Subject<Exercise[]>();
     finishedExercisesChanged = new Subject<Exercise[]>();
+    
+    private firebaseSubs: Subscription[] = [];
     private availableExercises: Exercise[] = [];
     private runningExercise: Exercise;
 
@@ -40,7 +42,7 @@ export class TrainingService {
     }
 
     fetchAvailableExercises() {
-        this.db
+        this.firebaseSubs.push(this.db
             .collection('availableExercises')
             .snapshotChanges()
             .map(docArray => {
@@ -55,7 +57,8 @@ export class TrainingService {
                 
                 this.availableExercises = exercises;
                 this.exercisesChanged.next([...this.availableExercises]);
-            });
+            })
+        );
     }
 
     private addDataToDatabase(exercise: Exercise) {
@@ -63,13 +66,18 @@ export class TrainingService {
     }
 
     fetchCompletedOrCanceledExercises() {
-        this.db
+        this.firebaseSubs.push(this.db
             .collection('finishedExercises')
             .valueChanges()
             .subscribe((exercises: any[]) => {
                 //console.log(exercises);//there is multi call issue
                 this.finishedExercisesChanged.next(exercises);
-            });
+            })
+        );
+    }
+
+    cancelSubscriptions() {
+        this.firebaseSubs.forEach(sub => sub.unsubscribe());
     }
 
     getRunningExercise() {
