@@ -1,0 +1,14 @@
+{
+  "targets": {
+    "ng-fitness-tracker-bddec": {
+      "hosting": {
+        "fitness-tracker": [
+          "ng-fitness-tracker-bddec"
+        ]
+      }
+    }
+  },
+  "projects": {
+    "default": "ng-fitness-tracker-bddec"
+  }
+}

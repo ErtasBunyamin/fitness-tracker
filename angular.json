@@ -99,6 +99,16 @@
             ],
             "scripts": []
           }
+        },
+        "deploy": {
+          "builder": "@angular/fire:deploy",
+          "options": {
+            "prerender": false,
+            "ssr": false,
+            "browserTarget": "fitness-tracker:build:production",
+            "firebaseProject": "ng-fitness-tracker-bddec",
+            "firebaseHostingSite": "ng-fitness-tracker-bddec"
+          }
         }
       }
     }
