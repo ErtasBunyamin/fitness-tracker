@@ -4,7 +4,7 @@ import { NgForm } from '@angular/forms';
 import { Exercise } from '../exercise.model';
 import { TrainingService } from '../training.service';
 import { Subscription } from 'rxjs';
-import 'rxjs/add/operator/map';
+
 import { UIService } from 'src/app/shared/ui.service';
 
 

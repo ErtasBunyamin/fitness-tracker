@@ -18,7 +18,7 @@ import { TrainingComponent } from "./training.component";
         StopTrainingComponent
     ],
     imports: [
-        AngularFirestoreModule,
+        //AngularFirestoreModule,
         SharedModule,
         TrainingRoutingModule
     ],

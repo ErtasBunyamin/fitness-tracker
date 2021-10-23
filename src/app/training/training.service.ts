@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { AngularFirestore } from "@angular/fire/compat/firestore";
 import { Subject, Subscription } from "rxjs";
+import { map } from "rxjs/operators";
 import { UIService } from "../shared/ui.service";
 import { Exercise } from "./exercise.model";
 @Injectable() //for inject provider auto
@@ -8,7 +9,7 @@ export class TrainingService {
     exerciseChange = new Subject<Exercise>();
     exercisesChanged = new Subject<Exercise[]>();
     finishedExercisesChanged = new Subject<Exercise[]>();
-    
+
     private firebaseSubs: Subscription[] = [];
     private availableExercises: Exercise[] = [];
     private runningExercise: Exercise;
@@ -47,14 +48,14 @@ export class TrainingService {
         this.firebaseSubs.push(this.db
             .collection('availableExercises')
             .snapshotChanges()
-            .map(docArray => {
+            .pipe(map(docArray => {
                 return docArray.map(doc => {
                     return {
                         id: doc.payload.doc.id,
                         ...doc.payload.doc.data() as Exercise
                     };
                 });
-            })
+            }))
             .subscribe((exercises: Exercise[]) => {
                 this.uiService.loadingStateChanged.next(false);
                 this.availableExercises = exercises;
