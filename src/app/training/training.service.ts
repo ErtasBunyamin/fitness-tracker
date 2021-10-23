@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { AngularFirestore } from "@angular/fire/compat/firestore";
 import { Subject, Subscription } from "rxjs";
+import { UIService } from "../shared/ui.service";
 import { Exercise } from "./exercise.model";
 @Injectable() //for inject provider auto
 export class TrainingService {
@@ -12,7 +13,7 @@ export class TrainingService {
     private availableExercises: Exercise[] = [];
     private runningExercise: Exercise;
 
-    constructor(private db: AngularFirestore) { }
+    constructor(private db: AngularFirestore, private uiService: UIService) { }
 
     startExercise(selectedId: string) {
         this.runningExercise = this.availableExercises.find(ex => ex.id === selectedId);
@@ -42,6 +43,7 @@ export class TrainingService {
     }
 
     fetchAvailableExercises() {
+        this.uiService.loadingStateChanged.next(true);
         this.firebaseSubs.push(this.db
             .collection('availableExercises')
             .snapshotChanges()
@@ -54,11 +56,14 @@ export class TrainingService {
                 });
             })
             .subscribe((exercises: Exercise[]) => {
-                
+                this.uiService.loadingStateChanged.next(false);
                 this.availableExercises = exercises;
                 this.exercisesChanged.next([...this.availableExercises]);
-            })
-        );
+            }, error => {
+                this.uiService.loadingStateChanged.next(false);
+                this.uiService.showSnackbar('Fetching Exercises failed, please try again later.', null, 3000);
+                this.exerciseChange.next(null);
+            }));
     }
 
     private addDataToDatabase(exercise: Exercise) {
@@ -66,11 +71,13 @@ export class TrainingService {
     }
 
     fetchCompletedOrCanceledExercises() {
+        this.uiService.loadingStateChanged.next(true);
         this.firebaseSubs.push(this.db
             .collection('finishedExercises')
             .valueChanges()
             .subscribe((exercises: any[]) => {
                 //console.log(exercises);//there is multi call issue
+                this.uiService.loadingStateChanged.next(false);
                 this.finishedExercisesChanged.next(exercises);
             })
         );
