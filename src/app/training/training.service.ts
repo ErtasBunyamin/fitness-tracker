@@ -1,9 +1,12 @@
 import { Injectable } from "@angular/core";
 import { AngularFirestore } from "@angular/fire/compat/firestore";
+import { Store } from "@ngrx/store";
 import { Subject, Subscription } from "rxjs";
 import { map } from "rxjs/operators";
-import { UIService } from "../shared/ui.service";
 import { Exercise } from "./exercise.model";
+import { UIService } from "../shared/ui.service";
+import * as fromRoot from "../app.reducer";
+import * as UI from "../shared/ui.actions";
 @Injectable() //for inject provider auto
 export class TrainingService {
     exerciseChange = new Subject<Exercise>();
@@ -14,7 +17,7 @@ export class TrainingService {
     private availableExercises: Exercise[] = [];
     private runningExercise: Exercise;
 
-    constructor(private db: AngularFirestore, private uiService: UIService) { }
+    constructor(private db: AngularFirestore, private store: Store<fromRoot.State>, private uiService: UIService) { }
 
     startExercise(selectedId: string) {
         this.runningExercise = this.availableExercises.find(ex => ex.id === selectedId);
@@ -44,7 +47,7 @@ export class TrainingService {
     }
 
     fetchAvailableExercises() {
-        this.uiService.loadingStateChanged.next(true);
+        this.store.dispatch(new UI.StartLoading());
         this.firebaseSubs.push(this.db
             .collection('availableExercises')
             .snapshotChanges()
@@ -57,33 +60,33 @@ export class TrainingService {
                 });
             }))
             .subscribe((exercises: Exercise[]) => {
-                this.uiService.loadingStateChanged.next(false);
+                this.store.dispatch(new UI.StopLoading());
                 this.availableExercises = exercises;
                 this.exercisesChanged.next([...this.availableExercises]);
             }, error => {
-                this.uiService.loadingStateChanged.next(false);
+                this.store.dispatch(new UI.StopLoading());
                 this.uiService.showSnackbar('Fetching Exercises failed, please try again later.', null, 3000);
                 this.exerciseChange.next(null);
             }));
     }
 
-    private addDataToDatabase(exercise: Exercise) {
-        this.db.collection('finishedExercises').add(exercise);
-    }
 
     fetchCompletedOrCanceledExercises() {
-        this.uiService.loadingStateChanged.next(true);
+        this.store.dispatch(new UI.StartLoading());
         this.firebaseSubs.push(this.db
             .collection('finishedExercises')
             .valueChanges()
             .subscribe((exercises: any[]) => {
                 //console.log(exercises);//there is multi call issue
-                this.uiService.loadingStateChanged.next(false);
+                this.store.dispatch(new UI.StopLoading());
                 this.finishedExercisesChanged.next(exercises);
             })
         );
     }
 
+    private addDataToDatabase(exercise: Exercise) {
+        this.db.collection('finishedExercises').add(exercise);
+    }
     cancelSubscriptions() {
         this.firebaseSubs.forEach(sub => sub.unsubscribe());
     }
