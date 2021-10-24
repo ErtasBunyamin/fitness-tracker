@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { AngularFirestore } from "@angular/fire/compat/firestore";
 import { Store } from "@ngrx/store";
-import { Subject, Subscription } from "rxjs";
+import { Subscription } from "rxjs";
 import { map, take } from "rxjs/operators";
 
 import { Exercise } from "./exercise.model";
@@ -11,14 +11,13 @@ import * as Training from "./training.actions";
 import * as UI from "../shared/ui.actions";
 @Injectable() //for inject provider auto
 export class TrainingService {
-    exerciseChange = new Subject<Exercise>();
-    exercisesChanged = new Subject<Exercise[]>();
-    finishedExercisesChanged = new Subject<Exercise[]>();
-
     private firebaseSubs: Subscription[] = [];
-    private runningExercise: Exercise;
 
-    constructor(private db: AngularFirestore, private store: Store<fromTraining.State>, private uiService: UIService) { }
+    constructor(
+        private db: AngularFirestore, 
+        private store: Store<fromTraining.State>, 
+        private uiService: UIService
+    ) { }
 
     startExercise(selectedId: string) {
         this.store.dispatch(new Training.StartTraining(selectedId));
@@ -67,7 +66,11 @@ export class TrainingService {
             }, error => {
                 this.store.dispatch(new UI.StopLoading());
                 this.store.dispatch(new Training.SetAvailableTrainings([]));
-                this.uiService.showSnackbar('Fetching Exercises failed, please try again later.', null, 3000);
+                this.uiService.showSnackbar(
+                    'Fetching Exercises failed, please try again later.', 
+                    null, 
+                    3000
+                );
             }));
     }
 

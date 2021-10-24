@@ -12,7 +12,6 @@ import * as UI from '../shared/ui.actions';
 import * as Auth from './auth.actions';
 @Injectable()
 export class AuthService {
-
     constructor(
         private router: Router,
         private afAuth: AngularFireAuth,
